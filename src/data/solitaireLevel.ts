@@ -1,5 +1,3 @@
-// src/data/solitaireLevel.ts
-
 export type CardData = {
   id: string;
   title: string;

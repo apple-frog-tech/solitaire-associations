@@ -34,11 +34,17 @@ export type CardState = Rect & {
   columnId: string | null;
   location: 'stock' | 'waste' | 'column' | 'slot';
   zIndex: number;
+  isMaster?: boolean;
+  anchorLabel?: string;
+  lockedByMaster?: boolean;
 };
 
 export type ColumnState = Rect & {
   id: string;
-  cardIds: string[]; // bottom -> top
+  cardIds: string[];
+  masterCardId: string | null;
+masterAnchorCardId: string | null;
+masterTopCardIds: string[];
 };
 
 export type GameState = {
@@ -52,6 +58,7 @@ export type GameState = {
   cards: Record<string, CardState>;
   categoryCardTotals: Record<string, number>;
   hintsLeft: number;
+  coins: number;
 };
 
 export type BoardLayout = {

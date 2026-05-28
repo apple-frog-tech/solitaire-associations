@@ -69,7 +69,6 @@ export default function HintFlyAnimation({
     const pause = setTimeout(() => {
       if (stopRef.current || !visible) return;
 
-      // instantly reset to the start position
       travel.setValue(0);
       squeeze.setValue(0);
 

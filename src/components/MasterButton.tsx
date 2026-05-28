@@ -10,29 +10,35 @@ import {
 import { SOLITAIRE_THEME } from '../theme/solitaireTheme';
 
 type Props = {
-  hintsLeft: number;
+  masterLeft: number;
   onPress?: () => void;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-export default function HintButton({ hintsLeft, onPress, style }: Props) {
-  const rewardMode = hintsLeft <= 0;
+export default function MasterButton({
+  masterLeft,
+  onPress,
+  disabled = false,
+  style,
+}: Props) {
+  const rewardMode = masterLeft <= 0;
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={!onPress}
+      disabled={disabled || !onPress}
       style={({ pressed }) => [
         styles.button,
         style,
-        pressed && styles.pressed,
+        pressed && !disabled && styles.pressed,
       ]}
     >
-      <Text style={styles.title}>Hint</Text>
+      <Text style={styles.title}>Master</Text>
 
       <View style={styles.badge}>
         <Text style={[styles.badgeText, rewardMode && styles.playIcon]}>
-          {rewardMode ? '▶' : hintsLeft}
+          {rewardMode ? '▶' : masterLeft}
         </Text>
       </View>
     </Pressable>

@@ -6,34 +6,57 @@ import {
   View,
   StyleProp,
   ViewStyle,
+  Image,
 } from 'react-native';
 import { SOLITAIRE_THEME } from '../theme/solitaireTheme';
 
 type Props = {
-  hintsLeft: number;
+  undoLeft: number;
+  coins: number;
+  cost?: number;
   onPress?: () => void;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-export default function HintButton({ hintsLeft, onPress, style }: Props) {
-  const rewardMode = hintsLeft <= 0;
+export default function UndoButton({
+  undoLeft,
+  coins,
+  cost = 50,
+  onPress,
+  disabled = false,
+  style,
+}: Props) {
+  const rewardMode = undoLeft <= 0;
+  const canBuy = coins >= cost;
+  const finalDisabled = disabled || (rewardMode && !canBuy);
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={!onPress}
+      disabled={finalDisabled}
       style={({ pressed }) => [
         styles.button,
         style,
-        pressed && styles.pressed,
+        finalDisabled && styles.disabled,
+        pressed && !finalDisabled && styles.pressed,
       ]}
     >
-      <Text style={styles.title}>Hint</Text>
+      <Text style={styles.title}>Undo</Text>
 
-      <View style={styles.badge}>
-        <Text style={[styles.badgeText, rewardMode && styles.playIcon]}>
-          {rewardMode ? '▶' : hintsLeft}
-        </Text>
+      <View style={[styles.badge, rewardMode && styles.rewardBadge]}>
+        {rewardMode ? (
+          <View style={styles.coinRow}>
+            <Image
+              source={require('../assets/coin.png')}
+              style={styles.coinImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.costText}>{cost}</Text>
+          </View>
+        ) : (
+          <Text style={styles.badgeText}>{undoLeft}</Text>
+        )}
       </View>
     </Pressable>
   );
@@ -61,6 +84,9 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
+  disabled: {
+    opacity: 0.45,
+  },
   title: {
     fontSize: 14,
     fontWeight: '800',
@@ -70,23 +96,37 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -7,
     right: -7,
-    width: 22,
+    minWidth: 22,
     height: 22,
     borderRadius: 11,
+    paddingHorizontal: 6,
     backgroundColor: '#5A4030',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#F8F4EA',
   },
+  rewardBadge: {
+    minWidth: 48,
+    paddingHorizontal: 8,
+  },
+  coinRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  coinImage: {
+    width: 14,
+    height: 14,
+    marginRight: 3,
+  },
   badgeText: {
     fontSize: 11,
     fontWeight: '900',
     color: SOLITAIRE_THEME.colors.textPrimary,
-    textAlign: 'center',
   },
-  playIcon: {
-    fontSize: 10,
-    marginLeft: 1,
+  costText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: SOLITAIRE_THEME.colors.textPrimary,
   },
 });

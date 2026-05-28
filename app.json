@@ -1,4 +1,7 @@
 {
   "name": "Solitaire",
-  "displayName": "Solitaire"
+  "displayName": "Solitaire",
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-7500474458725523~1366835408"
+  }
 }

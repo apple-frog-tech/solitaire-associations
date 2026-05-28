@@ -19,25 +19,19 @@ export const BOARD = {
   stackOffsetY: 30,
 };
 
-// const VISIBLE_TABLEAU_CARDS = 4;
-// const HIDDEN_TABLEAU_CARDS = 12;
 const TABLEAU_COLUMN_COUNT = 4;
 const VISIBLE_TABLEAU_CARDS = 4;
 
-// This gives the classic 1, 2, 4, 5 feel for a 25-card level.
 const BASE_HIDDEN_COUNTS = [1, 2, 4, 5];
-const BASE_TOTAL_HIDDEN = BASE_HIDDEN_COUNTS.reduce((sum, n) => sum + n, 0); // 12
+const BASE_TOTAL_HIDDEN = BASE_HIDDEN_COUNTS.reduce((sum, n) => sum + n, 0);
 
 function getTargetHiddenTotal(totalCards: number) {
   const baseHidden = BASE_TOTAL_HIDDEN;
 
-  // For your current 25-card level, this stays exactly 12 hidden cards.
   if (totalCards <= 25) {
     return Math.min(baseHidden, Math.max(0, totalCards - VISIBLE_TABLEAU_CARDS));
   }
 
-  // For bigger levels, hidden cards grow slowly.
-  // You can tweak 0.4 later if you want faster/slower growth.
   const extraCards = totalCards - 25;
   const extraHidden = Math.ceil(extraCards * 0.4);
 
@@ -121,6 +115,9 @@ const slots: SlotState[] = slotXs.map((x, index) => ({
     width: BOARD.cardWidth,
     height: BOARD.cardHeight,
     cardIds: [],
+    masterCardId: null,
+  masterAnchorCardId: null,
+  masterTopCardIds: [],
   }));
 
   return { slots, columns };

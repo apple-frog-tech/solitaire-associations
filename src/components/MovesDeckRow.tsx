@@ -1,5 +1,3 @@
-// src/components/MovesDeckRow.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 

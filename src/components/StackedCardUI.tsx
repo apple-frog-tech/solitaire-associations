@@ -1,100 +1,3 @@
-// import React from 'react';
-// import { StyleSheet, Text, View } from 'react-native';
-// import type { CardState } from '../gamelogic/solitaireTypes';
-
-// type Props = {
-//   card: CardState;
-//   rootCard: CardState;
-//   stackIndex: number;
-//   totalCards: number;
-// };
-
-// export default function StackedCardUI({
-//   card,
-//   rootCard,
-//   stackIndex,
-//   totalCards,
-// }: Props) {
-//   const isTopCard = stackIndex === totalCards - 1;
-
-//   return (
-//     <View
-//       pointerEvents="none"
-//       style={[
-//         styles.card,
-//         {
-//           left: card.x - rootCard.x,
-//           top: card.y - rootCard.y,
-//           width: card.width,
-//           height: card.height,
-//           zIndex: card.zIndex,
-//           elevation: card.zIndex,
-//         },
-//       ]}
-//     >
-//       {isTopCard ? (
-//         <View style={styles.centerWrap}>
-//           <Text style={styles.centerLabel} numberOfLines={2}>
-//             {card.label}
-//           </Text>
-//         </View>
-//       ) : (
-//         <View style={styles.coverLabelWrap}>
-//           <Text style={styles.coveredLabel} numberOfLines={1}>
-//             {card.label}
-//           </Text>
-//         </View>
-//       )}
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   card: {
-//     position: 'absolute',
-//     borderRadius: 10,
-//     backgroundColor: '#F8F4EA',
-//     borderWidth: 2,
-//     borderColor: '#E7DDCC',
-//     overflow: 'hidden',
-//     shadowColor: '#000',
-//     shadowOpacity: 0.16,
-//     shadowRadius: 3,
-//     elevation: 2,
-//   },
-
-//   centerWrap: {
-//     flex: 1,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     paddingHorizontal: 8,
-//   },
-
-//   centerLabel: {
-//     fontSize: 16,
-//     fontWeight: '700',
-//     color: '#5A4030',
-//     textAlign: 'center',
-//   },
-
-//   coverLabelWrap: {
-//     position: 'absolute',
-//     top: 4,
-//     left: 0,
-//     right: 0,
-//     height: 24,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-
-//   coveredLabel: {
-//     fontSize: 14,
-//     fontWeight: '700',
-//     color: '#5A4030',
-//     textAlign: 'center',
-//   },
-// });
-
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { CardState, SlotState } from '../gamelogic/solitaireTypes';
@@ -108,6 +11,7 @@ type Props = {
   slots: SlotState[];
   categoryCardTotals: Record<string, number>;
   isActive?: boolean;
+  hideTopLabel?: boolean;
 };
 
 export default function StackedCardUI({
@@ -118,6 +22,7 @@ export default function StackedCardUI({
   slots,
   categoryCardTotals,
   isActive = false,
+  hideTopLabel
 }: Props) {
   const isTopCard = stackIndex === totalCards - 1;
 
@@ -144,31 +49,35 @@ export default function StackedCardUI({
     width: card.width,
     height: card.height,
     zIndex: card.zIndex,
-    elevation: card.zIndex,
+    elevation: 0,
   },
 ]}
     >
-      {isTopCard ? (
-        <View style={styles.centerWrap}>
-          {isCategoryCard && <Text style={styles.crown}>👑</Text>}
+     {isTopCard ? (
+  hideTopLabel ? (
+    <View style={styles.centerWrap} />
+  ) : (
+    <View style={styles.centerWrap}>
+      {isCategoryCard && <Text style={styles.crown}>👑</Text>}
 
-          {showProgress && (
-            <View style={styles.progressBadge}>
-              <Text style={styles.progressText}>{progressText}</Text>
-            </View>
-          )}
-
-          <Text style={styles.centerLabel} numberOfLines={2}>
-            {card.label}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.coverLabelWrap}>
-          <Text style={styles.coveredLabel} numberOfLines={1}>
-            {card.label}
-          </Text>
+      {showProgress && (
+        <View style={styles.progressBadge}>
+          <Text style={styles.progressText}>{progressText}</Text>
         </View>
       )}
+
+      <Text style={styles.centerLabel} numberOfLines={2}>
+        {card.label}
+      </Text>
+    </View>
+  )
+) : (
+  <View style={styles.coverLabelWrap}>
+    <Text style={styles.coveredLabel} numberOfLines={1}>
+      {card.label}
+    </Text>
+  </View>
+)}
     </View>
   );
 }
@@ -182,9 +91,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7DDCC',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 0,
   },
   activeCard: {
   borderColor: 'rgba(57,232,242,0.35)',

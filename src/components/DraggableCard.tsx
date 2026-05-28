@@ -1,8 +1,8 @@
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, View, Text } from 'react-native';
 import type { CardState, DropResult, SlotState } from '../gamelogic/solitaireTypes';
 import { getCardProgressInfo } from '../gamelogic/cardProgress';
+import { playCardDropFeedback } from '../services/cardDropSound';
 
 type Props = {
   card: CardState;
@@ -10,6 +10,9 @@ type Props = {
   slots: SlotState[];
   categoryCardTotals: Record<string, number>;
   isActive?: boolean;
+  onTouchHintCancel?: () => void;
+  masterPlacementMode?: boolean;
+  onMasterTargetPress?: (cardId: string) => void;
 };
 
 export default function DraggableCard({
@@ -17,11 +20,15 @@ export default function DraggableCard({
   onDrop,
   slots,
   categoryCardTotals,
-  isActive=false,
+  isActive = false,
+  onTouchHintCancel,
+  masterPlacementMode = false,
+  onMasterTargetPress,
 }: Props) {
   const pan = useRef(new Animated.ValueXY({ x: card.x, y: card.y })).current;
   const startPos = useRef({ x: card.x, y: card.y });
   const [isDragging, setIsDragging] = useState(false);
+  const isLocked = !!card.lockedByMaster || !!card.isMaster;
   
 
   const { isCategoryCard, showProgress, progressText } = useMemo(
@@ -34,56 +41,73 @@ export default function DraggableCard({
     startPos.current = { x: card.x, y: card.y };
   }, [card.x, card.y, pan]);
 
-  const responder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => card.movable,
-        onMoveShouldSetPanResponder: () => card.movable,
+ const responder = useMemo(
+  () =>
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => card.faceUp && (card.movable || masterPlacementMode),
+      onMoveShouldSetPanResponder: () => card.movable && !masterPlacementMode,
 
-        onPanResponderGrant: () => {
-          setIsDragging(true);
-          startPos.current = { x: card.x, y: card.y };
-          pan.stopAnimation();
-        },
+      onPanResponderGrant: () => {
+        onTouchHintCancel?.();
 
-        onPanResponderMove: (_, gestureState) => {
-          pan.setValue({
-            x: startPos.current.x + gestureState.dx,
-            y: startPos.current.y + gestureState.dy,
-          });
-        },
+        if (masterPlacementMode) {
+          return;
+        }
 
-        onPanResponderRelease: (_, gestureState) => {
-          const finalX = startPos.current.x + gestureState.dx;
-          const finalY = startPos.current.y + gestureState.dy;
+        setIsDragging(true);
+        startPos.current = { x: card.x, y: card.y };
+        pan.stopAnimation();
+      },
 
-          const result = onDrop(card.id, finalX, finalY);
+      onPanResponderMove: (_, gestureState) => {
+        if (masterPlacementMode) return;
 
-          Animated.spring(pan, {
-            toValue: { x: result.targetX, y: result.targetY },
-            friction: 7,
-            tension: 90,
-            useNativeDriver: false,
-          }).start(() => {
-            setIsDragging(false);
-            startPos.current = { x: result.targetX, y: result.targetY };
-          });
-        },
+        pan.setValue({
+          x: startPos.current.x + gestureState.dx,
+          y: startPos.current.y + gestureState.dy,
+        });
+      },
 
-        onPanResponderTerminate: () => {
-          Animated.spring(pan, {
-            toValue: { x: card.homeX, y: card.homeY },
-            friction: 7,
-            tension: 90,
-            useNativeDriver: false,
-          }).start(() => {
-            setIsDragging(false);
-            startPos.current = { x: card.homeX, y: card.homeY };
-          });
-        },
-      }),
-    [card, onDrop, pan]
-  );
+      onPanResponderRelease: (_, gestureState) => {
+  if (masterPlacementMode) {
+    onMasterTargetPress?.(card.id);
+    return;
+  }
+
+  const finalX = startPos.current.x + gestureState.dx;
+  const finalY = startPos.current.y + gestureState.dy;
+
+  const result = onDrop(card.id, finalX, finalY);
+
+  playCardDropFeedback();
+
+  Animated.spring(pan, {
+    toValue: { x: result.targetX, y: result.targetY },
+    friction: 7,
+    tension: 90,
+    useNativeDriver: false,
+  }).start(() => {
+    setIsDragging(false);
+    startPos.current = { x: result.targetX, y: result.targetY };
+  });
+},
+
+      onPanResponderTerminate: () => {
+        if (masterPlacementMode) return;
+
+        Animated.spring(pan, {
+          toValue: { x: card.homeX, y: card.homeY },
+          friction: 7,
+          tension: 90,
+          useNativeDriver: false,
+        }).start(() => {
+          setIsDragging(false);
+          startPos.current = { x: card.homeX, y: card.homeY };
+        });
+      },
+    }),
+  [card, onDrop, pan, masterPlacementMode, onMasterTargetPress, onTouchHintCancel]
+);
  const cardStyle = isCategoryCard
   ? styles.categoryCard
   : isActive
@@ -95,15 +119,16 @@ export default function DraggableCard({
 
   return (
     <Animated.View
-      {...(card.movable ? responder.panHandlers : {})}
-      style={[
+    onTouchStart={onTouchHintCancel}
+    {...(card.movable && !isLocked ? responder.panHandlers : {})}
+     style={[
   styles.card,
   cardStyle,
   {
     width: card.width,
     height: card.height,
     zIndex: isDragging ? 9999 : card.zIndex,
-    elevation: isDragging ? 9999 : card.zIndex,
+    elevation: isDragging ? 8 : 1,
     transform: [{ translateX: pan.x }, { translateY: pan.y }],
   },
 ]}
@@ -134,9 +159,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7DDCC',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 0,
   },
   activeCard: {
   // borderColor: '#FCE0A4',

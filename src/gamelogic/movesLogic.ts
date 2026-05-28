@@ -29,7 +29,7 @@ export function calculateInitialMoves(
     categoryCount * 1.2 +
     averageItemsPerCategory * 0.8;
 
-  const movesWithBuffer = estimatedSolveMoves * difficultyMultiplier + 2;
+  const movesWithBuffer = estimatedSolveMoves * difficultyMultiplier + 8;
 
   return Math.max(12, Math.ceil(movesWithBuffer));
 }

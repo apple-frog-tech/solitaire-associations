@@ -87,7 +87,6 @@ export function getHintMove(state: GameState): HintMove | null {
 
   if (faceUpMovableCards.length === 0) return null;
 
-  // 1) First try item cards
   const itemCards = faceUpMovableCards.filter(card => card.cardType === 'item');
 
   for (const sourceCard of itemCards) {
@@ -96,7 +95,6 @@ export function getHintMove(state: GameState): HintMove | null {
       const stackCardIds = getHintStackCardIds(state, sourceCard.id);
 
       return {
-        // start from the bottom visible card so the full stack animates
         sourceCardId: stackCardIds[0] ?? sourceCard.id,
         stackCardIds,
         target,
@@ -104,7 +102,6 @@ export function getHintMove(state: GameState): HintMove | null {
     }
   }
 
-  // 2) If no item move exists, try category card -> empty slot
   const emptySlot = state.slots.find(
     slot => !slot.categoryId && !slot.isCompleting && !slot.isCompleted,
   );
